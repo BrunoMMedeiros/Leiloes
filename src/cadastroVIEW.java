@@ -5,6 +5,11 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+
 /**
  *
  * @author Adm
@@ -54,6 +59,12 @@ public class cadastroVIEW extends javax.swing.JFrame {
         cadastroNome.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 cadastroNomeActionPerformed(evt);
+            }
+        });
+
+        cadastroValor.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cadastroValorActionPerformed(evt);
             }
         });
 
@@ -142,23 +153,34 @@ public class cadastroVIEW extends javax.swing.JFrame {
     }//GEN-LAST:event_cadastroNomeActionPerformed
 
     private void btnCadastrarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCadastrarActionPerformed
-        ProdutosDTO produto = new ProdutosDTO();
         String nome = cadastroNome.getText();
-        String valor = cadastroValor.getText();
+        String valorText = cadastroValor.getText();
         String status = "A Venda";
-        produto.setNome(nome);
-        produto.setValor(Integer.parseInt(valor));
-        produto.setStatus(status);
-        
-        ProdutosDAO produtodao = new ProdutosDAO();
-        produtodao.cadastrarProduto(produto);
-        
+ 
+        try (Connection conexao = DriverManager.getConnection("jdbc:mysql://localhost:3306/leilao", "root", "")) {
+            String sql = "INSERT INTO produtos (nome, valor, status) VALUES (?, ?, ?)";
+            try (PreparedStatement pstmt = conexao.prepareStatement(sql)) {
+                pstmt.setString(1, nome);
+                pstmt.setInt(2, Integer.parseInt(valorText));
+                pstmt.setString(3, status);
+                pstmt.executeUpdate();
+                System.out.println("Produto cadastrado com sucesso!");
+            } catch (SQLException e) {
+                System.err.println("Erro ao executar o PreparedStatement: " + e.getMessage());
+            }
+        } catch (SQLException e) {
+            System.err.println("Erro ao conectar ao banco de dados: " + e.getMessage());
+        }        
     }//GEN-LAST:event_btnCadastrarActionPerformed
 
     private void btnProdutosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnProdutosActionPerformed
         listagemVIEW listagem = new listagemVIEW(); 
         listagem.setVisible(true);
     }//GEN-LAST:event_btnProdutosActionPerformed
+
+    private void cadastroValorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cadastroValorActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_cadastroValorActionPerformed
 
     /**
      * @param args the command line arguments
@@ -189,10 +211,8 @@ public class cadastroVIEW extends javax.swing.JFrame {
         //</editor-fold>
 
         /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new cadastroVIEW().setVisible(true);
-            }
+        java.awt.EventQueue.invokeLater(() -> {
+            new cadastroVIEW().setVisible(true);
         });
     }
 
